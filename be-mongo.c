@@ -4,9 +4,11 @@
 
 #ifdef BE_MONGO
 
-#include <mongoc.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <mongoc.h>
+#include "hash.h"
 
 struct mongo_backend {
     mongoc_client_t *client;
@@ -17,7 +19,20 @@ struct mongo_backend {
 void *be_mongo_init()
 {
     struct mongo_backend *conf;
-   const char *uristr = "mongodb://127.0.0.1/";
+    char *host, *p;
+
+    if ((host = p_stab("mongo_host")) == NULL)
+        host = "localhost";
+    if ((p = p_stab("mongo_port")) == NULL)
+        p = "27017";
+
+     char uristr[128] = {0};
+     strcpy(uristr, "mongodb://");
+     strcat(uristr, host);
+     strcat(uristr, ":");
+     strcat(uristr, p);
+     printf("mongo: [%s]\n", uristr);
+   //"mongodb://127.0.0.1:27017/";
 
     conf = (struct mongo_backend *)malloc(sizeof(struct mongo_backend));
    mongoc_init ();
@@ -66,9 +81,9 @@ char *be_mongo_getuser(void *handle, const char *username)
 
          bson_iter_init(&iter, doc);
          bson_iter_find(&iter, "pwd");
-         fprintf (stdout, "%s\n", bson_iter_utf8(&iter, NULL));
+         //fprintf (stdout, "%s\n", bson_iter_utf8(&iter, NULL));
          str = bson_as_json (doc, NULL);
-         fprintf (stdout, "%s\n", str);
+         //fprintf (stdout, "%s\n", str);
          bson_free (str);
          char *src = (char *)bson_iter_utf8(&iter, NULL);
          memcpy(result, src, strlen(src));
@@ -92,10 +107,8 @@ void be_mongo_destroy(void *handle)
     struct mongo_backend *conf = (struct mongo_backend *)handle;
 
     if (conf != NULL) {
-        printf("destory\n");
         mongoc_client_destroy(conf->client);
         conf->client = NULL;
-        printf("destoryed\n");
     }
 }
 
