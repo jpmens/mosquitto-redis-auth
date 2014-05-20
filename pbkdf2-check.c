@@ -27,9 +27,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+#include<openssl/md5.h>
 #include <openssl/evp.h>
 #include "base64.h"
 
@@ -77,6 +80,32 @@ static int detoken(char *pbkstr, char **sha, int *iter, char **salt, char **key)
      out:
 	free(save);
 	return rc;
+}
+
+int md5_check(char *password, char *hash)
+{
+    MD5_CTX ctx;
+    unsigned char md[16];
+    char buf[33]={'\0'};
+    char tmp[3]={'\0'};
+    int i;
+
+    MD5_Init(&ctx);
+    MD5_Update(&ctx,password,strlen(password));
+    MD5_Final(md,&ctx);
+
+    for( i=0; i<16; i++ ){
+        sprintf(tmp,"%02X",md[i]);
+        strcat(buf,tmp);
+    }
+    for(i = 0; i < sizeof(buf); i++)
+        buf[i] = tolower(buf[i]);
+
+    if(!strcmp(buf, hash)){
+        return 1;
+    }
+
+    return 0;
 }
 
 int pbkdf2_check(char *password, char *hash)

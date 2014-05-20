@@ -43,6 +43,7 @@
 #include "be-mysql.h"
 #include "be-sqlite.h"
 #include "be-redis.h"
+#include "be-mongo.h"
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -77,6 +78,7 @@ struct userdata {
 };
 
 int pbkdf2_check(char *password, char *hash);
+int md5_check(char *password, char *hash);
 
 int mosquitto_auth_plugin_version(void)
 {
@@ -240,6 +242,23 @@ int mosquitto_auth_plugin_init(void **userdata, struct mosquitto_auth_opt *auth_
 			PSKSETUP;
 		}
 #endif
+#if BE_MONGO
+		if (!strcmp(q, "mongo")) {
+			*bep = (struct backend_p *)malloc(sizeof(struct backend_p));
+			memset(*bep, 0, sizeof(struct backend_p));
+			(*bep)->name = strdup("mongo");
+			(*bep)->conf = be_mongo_init();
+			if ((*bep)->conf == NULL) {
+				_fatal("%s init returns NULL", q);
+			}
+			(*bep)->kill =  be_mongo_destroy;
+			(*bep)->getuser =  be_mongo_getuser;
+			(*bep)->superuser =  be_mongo_superuser;
+			(*bep)->aclcheck =  be_mongo_aclcheck;
+			found = 1;
+			PSKSETUP;
+		}
+#endif
                 if (!found) {
                         _fatal("ERROR: configured back-end `%s' is not compiled in this plugin", q);
                 }
@@ -294,7 +313,7 @@ int mosquitto_auth_unpwd_check(void *userdata, const char *username, const char 
 
 		phash = b->getuser(b->conf, username);
 		if (phash != NULL) {
-			match = pbkdf2_check((char *)password, phash);
+			match = md5_check((char *)password, phash);
 			if (match == 1) {
 				authenticated = TRUE;
 				/* Mark backend index in userdata so we can check
@@ -312,9 +331,9 @@ int mosquitto_auth_unpwd_check(void *userdata, const char *username, const char 
 	_log(DEBUG, "getuser(%s) AUTHENTICATED=%d by %s",
 		username, authenticated, backend_name);
 
-	if (phash != NULL) {
-		free(phash);
-	}
+    if (phash != NULL) {
+        free(phash);
+    }
 
 	return (authenticated) ? MOSQ_ERR_SUCCESS : MOSQ_ERR_AUTH;
 }
