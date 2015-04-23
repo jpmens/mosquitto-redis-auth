@@ -6,3 +6,5 @@ jp*.conf
 Makefile
 *.a
 config.mk
+.idea/
+build.sh
