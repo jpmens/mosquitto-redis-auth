@@ -454,7 +454,7 @@ int mosquitto_auth_acl_check(void *userdata, const char *clientid, const char *u
 		access == MOSQ_ACL_READ ? "MOSQ_ACL_READ" : "MOSQ_ACL_WRITE" );
 
 
-	granted = cache_q(clientid, username, topic, access, userdata);
+	granted = cache_q(username, topic, access, userdata);
 	if (granted != MOSQ_ERR_UNKNOWN) {
 		_log(DEBUG, "aclcheck(%s, %s, %d) CACHEDAUTH: %d",
 			username, topic, access, granted);
@@ -515,7 +515,7 @@ int mosquitto_auth_acl_check(void *userdata, const char *clientid, const char *u
 
    outout:	/* goto fail goto fail */
 
-	acl_cache(clientid, username, topic, access, granted, userdata);
+	acl_cache(username, topic, access, granted, userdata);
 	return (granted);
 	
 }

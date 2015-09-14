@@ -41,7 +41,7 @@ struct aclcache {
         UT_hash_handle hh;
 };
 
-void acl_cache(const char *clientid, const char *username, const char *topic, int access, int granted, void *userdata);
-int cache_q(const char *clientid, const char *username, const char *topic, int access, void *userdata);
+void acl_cache(const char *username, const char *topic, int access, int granted, void *userdata);
+int cache_q(const char *username, const char *topic, int access, void *userdata);
 
 #endif

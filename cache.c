@@ -55,14 +55,14 @@ static unsigned int sha_hash(const char *data, size_t size, unsigned char *out)
 	return md_len;
 }
 
-static void hexify(const char *clientid, const char *username, const char *topic, int access, char *hex)
+static void hexify(const char *username, const char *topic, int access, char *hex)
 {
 	char *data;
 	unsigned char hashdata[SHA_DIGEST_LENGTH];
 	int mdlen, i;
 
-	data = malloc(strlen(clientid) + strlen(username) + strlen(topic) + 20);
-	sprintf(data, "%s:%s:%s:%d", clientid, username, topic, access);
+	data = malloc(strlen(username) + strlen(topic) + 20);
+	sprintf(data, "%s:%s:%d", username, topic, access);
 
 	mdlen = sha_hash(data, strlen(data), hashdata);
 	if (mdlen != SHA_DIGEST_LENGTH) {
@@ -84,7 +84,7 @@ static void hexify(const char *clientid, const char *username, const char *topic
  * granted is what Mosquitto auth-plug actually granted
  */
 
-void acl_cache(const char *clientid, const char *username, const char *topic, int access, int granted, void *userdata)
+void acl_cache(const char *username, const char *topic, int access, int granted, void *userdata)
 {
 	char hex[SHA_DIGEST_LENGTH * 2 + 1];
 	struct aclcache *a, *tmp;
@@ -96,20 +96,20 @@ void acl_cache(const char *clientid, const char *username, const char *topic, in
 		return;
 	}
 
-	if (!clientid || !username || !topic) {
+	if (!username || !topic) {
 		return;
 	}
 
 	now = time(NULL);
 
-	hexify(clientid, username, topic, access, hex);
+	hexify(username, topic, access, hex);
 
 	HASH_FIND_STR(ud->aclcache, hex, a);
 	if (a) {
 		granted = a->granted;
 
 		if (time(NULL) > (a->seconds + cacheseconds)) {
-			_log(DEBUG, " Expired [%s] for (%s,%s,%d)", hex, clientid, username, access);
+			_log(DEBUG, " Expired [%s] for (%s,%d)", hex, username, access);
 			HASH_DEL(ud->aclcache, a);
 			free(a);
 		}
@@ -119,7 +119,7 @@ void acl_cache(const char *clientid, const char *username, const char *topic, in
 		a->granted = granted;
 		a->seconds = now;
 		HASH_ADD_STR(ud->aclcache, hex, a);
-		_log(DEBUG, " Cached  [%s] for (%s,%s,%d)", hex, clientid, username, access);
+		_log(DEBUG, " Cached  [%s] for (%s,%d)", hex, username, access);
 	}
 
 	/*
@@ -136,7 +136,7 @@ void acl_cache(const char *clientid, const char *username, const char *topic, in
 	}
 }
 
-int cache_q(const char *clientid, const char *username, const char *topic, int access, void *userdata)
+int cache_q(const char *username, const char *topic, int access, void *userdata)
 {
 	char hex[SHA_DIGEST_LENGTH * 2 + 1];
 	struct aclcache *a;
@@ -148,18 +148,18 @@ int cache_q(const char *clientid, const char *username, const char *topic, int a
 		return (MOSQ_ERR_UNKNOWN);
 	}
 
-	if (!clientid || !username || !topic) {
+	if (!username || !topic) {
 		return (MOSQ_ERR_UNKNOWN);
 	}
 
-	hexify(clientid, username, topic, access, hex);
+	hexify(username, topic, access, hex);
 
 	HASH_FIND_STR(ud->aclcache, hex, a);
 	if (a) {
 		// printf("---> CACHED! %d\n", a->granted);
 
 		if (time(NULL) > (a->seconds + cacheseconds)) {
-			_log(DEBUG, " Expired [%s] for (%s,%s,%d)", hex, clientid, username, access);
+			_log(DEBUG, " Expired [%s] for (%s,%d)", hex, username, access);
 			HASH_DEL(ud->aclcache, a);
 			free(a);
 		} else {
