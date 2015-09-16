@@ -34,14 +34,17 @@
 #ifndef __CACHE_H
 # define __CACHE_H
 
-struct aclcache {
+struct maincache {
         char hex[SHA_DIGEST_LENGTH * 2 + 1];    /* key within struct */
         int granted;
         time_t seconds;
         UT_hash_handle hh;
 };
 
-void acl_cache(const char *clientid, const char *username, const char *topic, int access, int granted, void *userdata);
-int cache_q(const char *clientid, const char *username, const char *topic, int access, void *userdata);
+void acl_cache(const char *username, const char *topic, int access, int granted, void *userdata);
+int acl_cache_q(const char *username, const char *topic, int access, void *userdata);
+
+void auth_cache(const char *username, const char *topic, int granted, void *userdata);
+int auth_cache_q(const char *username, const char *topic, void *userdata);
 
 #endif
