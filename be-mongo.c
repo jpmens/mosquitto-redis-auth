@@ -159,7 +159,7 @@ char *be_mongo_getuser(void *handle, const char *username, const char *password,
 		 size_t tmp = strlen(src);
 		 result = (char *) malloc(tmp);
 		 memset(result, 0, tmp);
-         memcpy(result, src, tmp);
+         memcpy(result, src, tmp + 1);
       }
    }
 
