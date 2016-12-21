@@ -62,6 +62,7 @@
 
 #include "userdata.h"
 #include "cache.h"
+#include "utils.h"
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -133,9 +134,11 @@ int mosquitto_auth_plugin_init(void **userdata, struct mosquitto_auth_opt *auth_
 	 * and let the back-ends figure out if they have all they
 	 * need upon init()
 	 */
-
 	for (i = 0, o = auth_opts; i < auth_opt_count; i++, o++) {
-		// _log(LOG_DEBUG, "AuthOptions: key=%s, val=%s", o->key, o->value);
+
+		// Removing extra white spaces on left
+		o->value = skip_initial_spaces(o->value);
+		//_log(LOG_DEBUG, "AuthOptions: key=%s, val=%s", o->key, o->value);
 
 		p_add(o->key, o->value);
 
