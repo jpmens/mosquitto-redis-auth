@@ -1,0 +1,14 @@
+# top-most EditorConfig file
+root = true
+# for every file
+[*]
+end_of_line = LF
+insert_final_newline = true
+tab_width = 4
+# for c files
+[*.{c,h}]
+indent_style = space
+indent_size = 4
+#for Makefile
+[Makefile]
+indent_style = tab
