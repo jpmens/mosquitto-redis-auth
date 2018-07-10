@@ -8,3 +8,4 @@ Makefile
 *.a
 config.mk
 sundry
+.vscode

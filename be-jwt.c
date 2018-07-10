@@ -260,9 +260,11 @@ void *be_jwt_init()
 	conf->port = p_stab("http_port") == NULL ? 80 : atoi(p_stab("http_port"));
 	if (p_stab("http_hostname") != NULL) {
 		conf->hostheader = (char *)malloc(128);
+		conf->hostname = p_stab("http_hostname");
 		sprintf(conf->hostheader, "Host: %s", p_stab("http_hostname"));
 	} else {
 		conf->hostheader = NULL;
+		conf->hostname = NULL;
 	}
 	conf->getuser_uri = getuser_uri;
 	conf->superuser_uri = superuser_uri;
