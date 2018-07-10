@@ -128,19 +128,19 @@ static int http_post(void *handle, char *uri, const char *clientid, const char *
 		return BACKEND_ERROR;
 	}
 	//enable the https
-        if (strcmp(conf->with_tls, "true") == 0) {
-                if (conf->hostname != NULL) {
-                     sprinft(url, "https://%s:%d%s", conf->hostname, conf->port, uri);
-                } else {
-                     sprintf(url, "https://%s:%d%s", conf->ip, conf->port, uri);
-                }
-        } else {
-                if (conf->hostname != NULL) {
-                     sprintf(url, "http://%s:%d%s", conf->hostname, conf->port, uri);
-                } else {
-                     sprintf(url, "http://%s:%d%s", conf->ip, conf->port, uri);
-                }
-        }
+	if (strcmp(conf->with_tls, "true") == 0) {
+		if (conf->hostname != NULL) {
+			sprintf(url, "https://%s:%d%s", conf->hostname, conf->port, uri);
+		} else {
+			sprintf(url, "https://%s:%d%s", conf->ip, conf->port, uri);
+		}
+	} else {
+		if (conf->hostname != NULL) {
+			sprintf(url, "http://%s:%d%s", conf->hostname, conf->port, uri);
+		} else {
+			sprintf(url, "http://%s:%d%s", conf->ip, conf->port, uri);
+		}
+	}
 
 
 	char *escaped_token = curl_easy_escape(curl, token, 0);
