@@ -521,7 +521,6 @@ int mosquitto_auth_unpwd_check(void *userdata, const char *username, const char 
 		free(e->username);
 		free(e->clientid);
 		e->username = strdup(username);
-		e->clientid = strdup((char *)mosquitto_client_id(client));
 		if(mosquitto_client_id(client))
 			e->clientid = strdup((char *)mosquitto_client_id(client));
 		else
