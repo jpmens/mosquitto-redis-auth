@@ -512,7 +512,7 @@ int mosquitto_auth_unpwd_check(void *userdata, const char *username, const char 
 	if (!username || !*username || !password || !*password)
 		return MOSQ_DENY_AUTH;
 
-	_log(LOG_DEBUG, "mosquitto_auth_unpwd_check(%s)", (username) ? username : "<nil>");
+	_log(LOG_DEBUG, "mosquitto_auth_unpwd_check(%s, %s)", client ? mosquitto_client_id(client) : "<nil>" , (username) ? username : "<nil>");
 
 #if MOSQ_AUTH_PLUGIN_VERSION >=3
 	struct cliententry *e;
@@ -521,12 +521,19 @@ int mosquitto_auth_unpwd_check(void *userdata, const char *username, const char 
 		free(e->username);
 		free(e->clientid);
 		e->username = strdup(username);
-		e->clientid = strdup("client id not available");
+		e->clientid = strdup((char *)mosquitto_client_id(client));
+		if(mosquitto_client_id(client))
+			e->clientid = strdup((char *)mosquitto_client_id(client));
+		else
+			e->clientid = strdup("client id not available");
 	} else {
 		e = (struct cliententry *)malloc(sizeof(struct cliententry));
 		e->key = (void *)client;
 		e->username = strdup(username);
-		e->clientid = strdup("client id not available");
+		if(mosquitto_client_id(client))
+			e->clientid = strdup((char *)mosquitto_client_id(client));
+		else
+			e->clientid = strdup("client id not available");
 		HASH_ADD(hh, ud->clients, key, sizeof(void *), e);
 	}
 #endif
@@ -652,7 +659,7 @@ int mosquitto_auth_acl_check(void *userdata, const char *clientid, const char *u
 		clientid ? clientid : "NULL",
 		username ? username : "NULL",
 		topic ? topic : "NULL",
-		access == MOSQ_ACL_READ ? "MOSQ_ACL_READ" : "MOSQ_ACL_WRITE" );
+		access == MOSQ_ACL_READ ? "MOSQ_ACL_READ" : access == MOSQ_ACL_WRITE ? "MOSQ_ACL_WRITE" : access == (MOSQ_ACL_READ | MOSQ_ACL_WRITE) ? "MOSQ_ACL_READ | MOSQ_ACL_WRITE" : "MOSQ_ACL_SUBSCRIBE");
 
 
 	granted = acl_cache_q(clientid, username, topic, access, userdata);

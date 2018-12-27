@@ -197,6 +197,14 @@ static acl_entry *read_acl_line(const char *line)
 		access = MOSQ_ACL_WRITE;
 		pos = &line[6];
 		for (; (*pos == ' ' || *pos == '\t') && *pos != '\0'; ++pos);
+	} else if (strncmp("readwrite", line, 9) == 0 && (line[9] == ' ' || line[9] == '\t')) {
+		access = MOSQ_ACL_READ | MOSQ_ACL_WRITE;
+		pos = &line[10];
+		for (; (*pos == ' ' || *pos == '\t') && *pos != '\0'; ++pos);
+	} else if (strncmp("subscribe", line, 9) == 0 && (line[9] == ' ' || line[9] == '\t')) {
+		access = MOSQ_ACL_SUBSCRIBE;
+		pos = &line[10];
+		for (; (*pos == ' ' || *pos == '\t') && *pos != '\0'; ++pos);
 	} else {
 		access = MOSQ_ACL_READ | MOSQ_ACL_WRITE;
 		pos = &line[0];
@@ -393,7 +401,10 @@ static int do_aclcheck(dllist * acl_list,
 		*di = '\0';
 		if (mosquitto_topic_matches_sub(buf, topic, &ret) != MOSQ_ERR_SUCCESS) {
 			LOG(MOSQ_LOG_ERR, "invalid topic '%s'", buf);
-		} else if (ret && (access & acl->access) != 0) {
+		} else if (ret && ((access == acl->access) || 
+			(acl->access == (MOSQ_ACL_READ | MOSQ_ACL_WRITE)) ||
+			((access == MOSQ_ACL_SUBSCRIBE && !strpbrk(topic, "#") && acl->access == MOSQ_ACL_READ) || acl->access == MOSQ_ACL_SUBSCRIBE))) {
+			LOG(MOSQ_LOG_ERR, "do_aclcheck: %d, %d, %d", ret, access, acl->access);
 			return BACKEND_ALLOW;
 		}
 	}
